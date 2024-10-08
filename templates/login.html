@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio de Sesión</title>
+    <!-- Ruta al archivo de estilos CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style-login.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="login-box">
+            <div class="face-recognition">
+                <!-- Ruta a la imagen de reconocimiento facial -->
+                <img src="{{ url_for('static', filename='images/face-image.jpg') }}" alt="Reconocimiento facial">
+                <div class="separator-line"></div>
+            </div>
+            
+            <div class="login-form">
+                <h2>Iniciar Sesión</h2>
+                <form>
+                    <div class="input-box">
+                        <input type="email" placeholder="Email" required>
+                        <span class="icon">&#x2709;</span>
+                    </div>
+                    <div class="input-box">
+                        <input type="password" placeholder="Contraseña" required>
+                        <span class="icon">&#x1F512;</span>
+                    </div>
+                    <div class="options">
+                        <label>
+                            <a href="#" class="forgot-password">Olvide mi contraseña</a>
+                        </label>
+                    </div>
+                    <button type="submit">Acceder</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

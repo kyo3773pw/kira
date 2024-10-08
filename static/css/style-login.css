@@ -1,0 +1,212 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Asegura que el body ocupe al menos el 100% de la altura */
+    overflow-y: auto; /* Permite el desplazamiento vertical si es necesario */
+    background: url('../images/background.jpg') no-repeat center center fixed;
+    background-size: cover;
+    color: #ffffff;
+}
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 20px; /* Añade un pequeño padding para evitar que la caja se pegue al borde */
+    box-sizing: border-box; /* Incluye el padding en el tamaño total */
+}
+
+.login-box {
+    display: flex;
+    flex-direction: row;
+    width: 80%;
+    max-width: 1200px;
+    background: linear-gradient(135deg, #046574, #10193a);
+    padding: 0;
+    border-radius: 2%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+.face-recognition {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    max-width: 45%;
+}
+
+.face-recognition img {
+    width: 100%;
+    height: auto;
+    border-radius: 2% 0 0 2%;
+}
+.separator-line {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 0.2%;
+    height: 100%;
+    background-color: #ffffff;
+}
+
+.login-form {
+    flex: 1.5;
+    padding: 5%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: #ffffff;
+    max-width: 55%;
+}
+
+.login-form h2 {
+    margin-bottom: 5%;
+    font-size: 5vw; /* Tamaño de fuente relativo al ancho de la ventana */
+    text-align: left;
+    font-weight: bold;
+}
+.input-box {
+    position: relative;
+    margin-bottom: 5%;
+    font-size: 4vw;
+}
+
+.input-box input {
+    width: 90%; /* Ajusta el ancho del campo de entrada */
+    padding: 3% 8%;
+    border: none;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+    outline: none;
+    background: transparent;
+    color: #ffffff;
+    font-size: 1.5vw;
+    transition: border-color 0.3s ease;
+    font-size: 4vw; /* Tamaño de fuente relativo al ancho de la ventana */
+}
+
+.input-box input:focus {
+    border-bottom: 2px solid #ffffff;
+}
+
+.input-box .icon {
+    position: absolute;
+    top: 50%;
+    right: 3%;
+    transform: translateY(-50%);
+    font-size: 2vw;
+    pointer-events: none;
+}
+
+.options {
+    margin-bottom: 5%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+}
+
+.options input {
+    margin-right: 3%;
+    transform: scale(1.2);
+}
+
+.forgot-password {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 4vw;
+}
+
+button {
+    padding: 2% 5%;
+    border-radius: 20px;
+    border: none;
+    outline: none;
+    background-color: #ffffff;
+    color: #10193a;
+    font-size: 4vw;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    align-self: center;
+}
+
+button:hover {
+    background-color: #ccc;
+}
+
+@media (max-width: 768px), (max-height: 600px) {
+    .login-box {
+        flex-direction: column; /* Cambia la dirección del flex a columna */
+        max-width: 90vw; /* Ajusta el ancho máximo para pantallas pequeñas */
+        max-height: 90vh; /* Ajusta la altura máxima para pantallas pequeñas */
+    }
+
+    .face-recognition {
+        max-width: 100%; /* La imagen ocupa todo el ancho */
+        height: auto; /* Ajusta la altura */
+    }
+
+    .face-recognition img {
+        width: 100%; /* La imagen ocupa todo el ancho */
+        height: auto; /* Mantiene la proporción de la imagen */
+        border-radius: 2% 2% 0 0; /* Bordes redondeados solo en la parte superior */
+    }
+
+    .separator-line {
+        display: none; /* Oculta la línea de separación */
+    }
+
+    .login-form {
+        max-width: 100%; /* El formulario ocupa todo el ancho */
+        padding: 10%; /* Añade más padding alrededor */
+    }
+}
+
+/* Ajusta el tamaño de las fuentes en pantallas grandes */
+@media (min-width: 1200px) {
+    .login-form h2 {
+        font-size: 2vw; /* Reduce el tamaño de la fuente en pantallas grandes */
+    }
+
+    .input-box input {
+        font-size: 1.5vw;
+    }
+
+    .input-box .icon {
+        font-size: 1.5vw;
+    }
+
+    .forgot-password {
+        font-size: 1.5vw;
+    }
+
+    button {
+        font-size: 1.5vw;
+    }
+}
+
+/* Ajusta el tamaño de las fuentes en pantallas muy pequeñas */
+@media (max-width: 600px) {
+    .login-form h2 {
+        font-size: 6vw; /* Aumenta el tamaño de la fuente en pantallas pequeñas */
+    }
+
+    .input-box input {
+        font-size: 5vw;
+    }
+
+    .input-box .icon {
+        font-size: 5vw;
+    }
+
+    .forgot-password {
+        font-size: 5vw;
+    }
+
+    button {
+        font-size: 5vw;
+    }
+}
