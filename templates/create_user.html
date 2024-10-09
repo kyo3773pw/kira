@@ -67,6 +67,12 @@
                     <input type="hidden" id="profile_image" name="profile_image">
                 </div>
 
+                <!-- Añadir un elemento de imagen para mostrar la captura -->
+                <div class="form-group">
+                    <label>Imagen Capturada:</label><br>
+                    <img id="captured_image" src="" alt="Imagen Capturada" style="display:none; width: 320px; height: 240px;">
+                </div>
+
                 <button type="submit">Crear Usuario</button>
             </form>
         </div>
@@ -97,6 +103,11 @@
             
             // Almacenar en el campo oculto
             document.getElementById('profile_image').value = imageData;
+
+            // Mostrar la imagen capturada en el elemento <img>
+            const capturedImage = document.getElementById('captured_image');
+            capturedImage.src = imageData;
+            capturedImage.style.display = 'block';  // Hacer visible la imagen
         });
     </script>
 </body>
