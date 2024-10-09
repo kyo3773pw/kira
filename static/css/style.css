@@ -104,36 +104,56 @@ body {
     backdrop-filter: blur(5px); /* Efecto de desenfoque */
 }
 
-/* Estilo para notificaciones y alarmas */
-.notification, .alarm {
-    padding: 20px;
-    border-radius: 10px;
+/* Estilo para formularios */
+.form-group {
     margin-bottom: 20px;
 }
 
-.notification {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-left: 5px solid #ffeb3b;
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
 }
 
-.alarm.warning {
-    background-color: rgba(255, 0, 0, 0.2);
-    border-left: 5px solid #ff0000;
+.form-group input[type="text"],
+.form-group input[type="password"],
+.form-group select {
+    width: calc(100% - 20px);
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #10193a;
 }
 
 /* Estilos de botones */
-.action-buttons button {
+button[type="submit"],
+button[type="button"] {
     background-color: #ffffff;
     color: #10193a;
     border: none;
     padding: 10px 20px;
     font-size: 16px;
-    border-radius: 20px;
+    border-radius: 5px;
     cursor: pointer;
-    margin-left: 10px;
     transition: background-color 0.3s ease;
 }
 
-.action-buttons button:hover {
+button[type="submit"]:hover,
+button[type="button"]:hover {
     background-color: #e0e0e0; /* Color claro al pasar el mouse */
+}
+
+/* Estilo para el área de captura de imagen */
+.face-recognition {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.face-recognition video {
+    border: 2px solid #ffffff;
+    border-radius: 5px;
+    margin-bottom: 10px;
 }

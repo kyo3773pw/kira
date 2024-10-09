@@ -10,14 +10,14 @@
     <div class="sidebar">
         <div class="user-info">
             <div class="user-avatar"></div>
-            <h2 class="user-name">Nombre de Usuario</h2>
+            <h2 class="user-name">{{ current_user.username }}</h2>
         </div>
         <ul class="menu">
             <li><a href="#">Inicio</a></li>
             <li><a href="#">Configuración</a></li>
             <li><a href="#">Alarmas</a></li>
             <li><a href="#">Notificaciones</a></li>
-            <li><a href="#">Cerrar Sesión</a></li>
+            <li><a href="{{ url_for('logout') }}">Cerrar Sesión</a></li>
         </ul>
     </div>
     <div class="main-content">
@@ -29,7 +29,6 @@
             </div>
         </div>
         <div class="content-area">
-            <!-- Tabla de usuarios -->
             <h2>Lista de Usuarios</h2>
             <table>
                 <thead>
@@ -40,23 +39,16 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Ejemplo de usuario, esto debería ser generado dinámicamente con los usuarios reales -->
+                    {% for user in users %}
                     <tr>
-                        <td>UsuarioEjemplo</td>
-                        <td>Administrador</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.role }}</td>
                         <td>
-                            <button onclick="window.location.href='/edit_user/UsuarioEjemplo'">Editar</button>
-                            <button onclick="eliminarUsuario('UsuarioEjemplo')">Eliminar</button>
+                            <button onclick="window.location.href='/edit_user/{{ user.username }}'">Editar</button>
+                            <button onclick="eliminarUsuario('{{ user.username }}')">Eliminar</button>
                         </td>
                     </tr>
-                    <tr>
-                        <td>Usuario2</td>
-                        <td>Coadministrador</td>
-                        <td>
-                            <button onclick="window.location.href='/edit_user/Usuario2'">Editar</button>
-                            <button onclick="eliminarUsuario('Usuario2')">Eliminar</button>
-                        </td>
-                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
@@ -65,14 +57,12 @@
     <script>
         function eliminarUsuario(username) {
             if (confirm('¿Estás seguro de que deseas eliminar al usuario ' + username + '?')) {
-                // Realiza la solicitud al backend para eliminar el usuario
                 fetch('/delete_user/' + username, {
                     method: 'DELETE',
                 })
                 .then(response => {
                     if (response.ok) {
                         alert('Usuario eliminado correctamente.');
-                        // Recarga la página para actualizar la lista de usuarios
                         window.location.reload();
                     } else {
                         alert('Hubo un problema al eliminar el usuario.');

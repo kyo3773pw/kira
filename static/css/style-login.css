@@ -1,212 +1,197 @@
+/* Reset y estilos generales */
 body {
     margin: 0;
     padding: 0;
     font-family: 'Arial', sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh; /* Asegura que el body ocupe al menos el 100% de la altura */
-    overflow-y: auto; /* Permite el desplazamiento vertical si es necesario */
+    min-height: 100vh;
     background: url('../images/background.jpg') no-repeat center center fixed;
     background-size: cover;
     color: #ffffff;
-}
-.container {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100%;
-    padding: 20px; /* Añade un pequeño padding para evitar que la caja se pegue al borde */
-    box-sizing: border-box; /* Incluye el padding en el tamaño total */
 }
 
+/* Contenedor principal */
+.container {
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Caja de login */
 .login-box {
     display: flex;
-    flex-direction: row;
     width: 80%;
     max-width: 1200px;
     background: linear-gradient(135deg, #046574, #10193a);
-    padding: 0;
-    border-radius: 2%;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
     overflow: hidden;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
 }
+
+/* Sección de reconocimiento facial */
 .face-recognition {
     flex: 1;
+    max-width: 40%; /* Ajustar el tamaño para que sea un poco más pequeño */
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
-    position: relative;
-    max-width: 45%;
+    overflow: hidden;
+    background-color: #0a2e38; /* Fondo oscuro para destacar la cámara */
+    border: 4px solid rgba(255, 255, 255, 0.2); /* Borde externo translúcido */
+    border-radius: 10px; /* Bordes redondeados */
+    padding: 10px; /* Espacio entre el borde y la cámara */
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Sombra para resaltar el contenedor */
 }
 
-.face-recognition img {
+#input_video {
     width: 100%;
     height: auto;
-    border-radius: 2% 0 0 2%;
+    border-radius: 10px; /* Bordes redondeados en el video */
+    object-fit: cover; /* Ocupar todo el espacio del contenedor */
+    border: 4px solid #4e91ce; /* Borde color azul claro alrededor de la cámara */
+    box-shadow: 0 0 10px rgba(78, 145, 206, 0.8); /* Sombra azul para destacar el video */
 }
+
+#output_canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* El canvas no interferirá con las interacciones del usuario */
+    border-radius: 10px; /* Bordes redondeados en el canvas */
+}
+
 .separator-line {
     position: absolute;
     top: 0;
     right: 0;
-    width: 0.2%;
+    width: 2px;
     height: 100%;
-    background-color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
+/* Formulario de login */
 .login-form {
     flex: 1.5;
-    padding: 5%;
+    padding: 40px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    color: #ffffff;
-    max-width: 55%;
 }
 
 .login-form h2 {
-    margin-bottom: 5%;
-    font-size: 5vw; /* Tamaño de fuente relativo al ancho de la ventana */
-    text-align: left;
+    margin-bottom: 30px;
+    font-size: 2.5em;
     font-weight: bold;
 }
+
+/* Campos de entrada */
 .input-box {
     position: relative;
-    margin-bottom: 5%;
-    font-size: 4vw;
+    margin-bottom: 20px;
 }
 
 .input-box input {
-    width: 90%; /* Ajusta el ancho del campo de entrada */
-    padding: 3% 8%;
+    width: 100%;
+    padding: 10px 30px 10px 10px;
     border: none;
     border-bottom: 2px solid rgba(255, 255, 255, 0.5);
-    outline: none;
     background: transparent;
     color: #ffffff;
-    font-size: 1.5vw;
+    font-size: 1em;
     transition: border-color 0.3s ease;
-    font-size: 4vw; /* Tamaño de fuente relativo al ancho de la ventana */
 }
 
 .input-box input:focus {
-    border-bottom: 2px solid #ffffff;
+    border-bottom-color: #ffffff;
+    outline: none;
 }
 
 .input-box .icon {
     position: absolute;
     top: 50%;
-    right: 3%;
+    right: 10px;
     transform: translateY(-50%);
-    font-size: 2vw;
-    pointer-events: none;
+    font-size: 1.2em;
 }
 
+/* Opciones adicionales */
 .options {
-    margin-bottom: 5%;
-    text-align: left;
-    display: flex;
-    align-items: center;
-}
-
-.options input {
-    margin-right: 3%;
-    transform: scale(1.2);
+    margin-bottom: 20px;
+    text-align: right;
 }
 
 .forgot-password {
     color: #ffffff;
     text-decoration: none;
-    font-size: 4vw;
+    font-size: 0.9em;
 }
 
+/* Botón de acceso */
 button {
-    padding: 2% 5%;
-    border-radius: 20px;
+    padding: 10px 20px;
     border: none;
-    outline: none;
+    border-radius: 20px;
     background-color: #ffffff;
     color: #10193a;
-    font-size: 4vw;
+    font-size: 1em;
     cursor: pointer;
     transition: background-color 0.3s ease;
     align-self: center;
 }
 
 button:hover {
-    background-color: #ccc;
+    background-color: #e0e0e0;
 }
 
-@media (max-width: 768px), (max-height: 600px) {
+/* Mensajes flash */
+.flash-messages {
+    margin-top: 20px;
+    color: #ff6b6b;
+    text-align: center;
+}
+
+/* Media queries para responsividad */
+@media (max-width: 768px) {
     .login-box {
-        flex-direction: column; /* Cambia la dirección del flex a columna */
-        max-width: 90vw; /* Ajusta el ancho máximo para pantallas pequeñas */
-        max-height: 90vh; /* Ajusta la altura máxima para pantallas pequeñas */
+        flex-direction: column;
+        width: 90%;
     }
 
-    .face-recognition {
-        max-width: 100%; /* La imagen ocupa todo el ancho */
-        height: auto; /* Ajusta la altura */
+    .face-recognition, .login-form {
+        max-width: 100%;
     }
 
-    .face-recognition img {
-        width: 100%; /* La imagen ocupa todo el ancho */
-        height: auto; /* Mantiene la proporción de la imagen */
-        border-radius: 2% 2% 0 0; /* Bordes redondeados solo en la parte superior */
+    #input_video, #output_canvas {
+        border-radius: 10px 10px 0 0;
     }
 
     .separator-line {
-        display: none; /* Oculta la línea de separación */
+        display: none;
     }
 
     .login-form {
-        max-width: 100%; /* El formulario ocupa todo el ancho */
-        padding: 10%; /* Añade más padding alrededor */
+        padding: 20px;
+    }
+
+    .login-form h2 {
+        font-size: 2em;
     }
 }
 
-/* Ajusta el tamaño de las fuentes en pantallas grandes */
-@media (min-width: 1200px) {
+@media (max-width: 480px) {
     .login-form h2 {
-        font-size: 2vw; /* Reduce el tamaño de la fuente en pantallas grandes */
+        font-size: 1.8em;
     }
 
-    .input-box input {
-        font-size: 1.5vw;
-    }
-
-    .input-box .icon {
-        font-size: 1.5vw;
-    }
-
-    .forgot-password {
-        font-size: 1.5vw;
-    }
-
-    button {
-        font-size: 1.5vw;
-    }
-}
-
-/* Ajusta el tamaño de las fuentes en pantallas muy pequeñas */
-@media (max-width: 600px) {
-    .login-form h2 {
-        font-size: 6vw; /* Aumenta el tamaño de la fuente en pantallas pequeñas */
-    }
-
-    .input-box input {
-        font-size: 5vw;
-    }
-
-    .input-box .icon {
-        font-size: 5vw;
-    }
-
-    .forgot-password {
-        font-size: 5vw;
-    }
-
-    button {
-        font-size: 5vw;
+    .input-box input, button {
+        font-size: 0.9em;
     }
 }
