@@ -26,20 +26,20 @@
             <h2 class="user-name">Editar Usuario</h2>
         </div>
         <div class="content-area">
-            <form action="/update_user" method="POST">
+            <form action="{{ url_for('edit_user', username=username) }}" method="POST">
                 <label for="username">Nombre de Usuario:</label>
                 <input type="text" id="username" name="username" value="{{ username }}" required><br><br>
-
+            
                 <label for="password">Contraseña:</label>
                 <input type="password" id="password" name="password" required><br><br>
-
+            
                 <label for="role">Rol:</label>
                 <select id="role" name="role" required>
                     <option value="admin" {% if role == 'admin' %} selected {% endif %}>Administrador</option>
                     <option value="coadmin" {% if role == 'coadmin' %} selected {% endif %}>Coadministrador</option>
                     <option value="user" {% if role == 'user' %} selected {% endif %}>Usuario</option>
                 </select><br><br>
-
+            
                 <button type="submit">Actualizar Usuario</button>
             </form>
         </div>

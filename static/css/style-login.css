@@ -98,15 +98,17 @@ body {
     margin-bottom: 20px;
 }
 
+.input-box label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
 .input-box input {
     width: 100%;
-    padding: 10px 30px 10px 10px;
-    border: none;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.5);
-    background: transparent;
-    color: #ffffff;
-    font-size: 1em;
-    transition: border-color 0.3s ease;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
 }
 
 .input-box input:focus {
@@ -115,11 +117,7 @@ body {
 }
 
 .input-box .icon {
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    font-size: 1.2em;
+    margin-right: 10px;
 }
 
 /* Opciones adicionales */

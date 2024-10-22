@@ -1,19 +1,47 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <title>Agregar Usuario</title>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+    <style>
+        .face-recognition {
+            position: relative;
+            width: 320px;
+            height: 240px;
+        }
+
+        #input_video,
+        #output_canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #output_canvas {
+            z-index: 1;
+        }
+    </style>
 </head>
+
 <body>
     <div class="sidebar">
         <div class="user-info">
             <div class="user-avatar"></div>
-            <h2 class="user-name">Nombre de Usuario</h2>
+            <h2 class="user-name">{{ current_user.username }}</h2>
         </div>
         <ul class="menu">
-            <li><a href="/">Inicio</a></li>
+            <li><a href="{{ url_for('index') }}">Inicio</a></li>
             <li><a href="#">Configuración</a></li>
             <li><a href="#">Alarmas</a></li>
             <li><a href="#">Notificaciones</a></li>
@@ -27,17 +55,15 @@
         </div>
         <div class="content-area">
             <h2>Crear Usuario</h2>
-            <form action="/create_user" method="POST">
+            <form action="{{ url_for('create_user') }}" method="POST" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="username">Nombre de Usuario:</label>
                     <input type="text" id="username" name="username" required><br><br>
                 </div>
-
                 <div class="form-group">
                     <label for="password">Contraseña:</label>
                     <input type="password" id="password" name="password" required><br><br>
                 </div>
-
                 <div class="form-group">
                     <label for="role">Rol:</label>
                     <select id="role" name="role" required>
@@ -46,7 +72,6 @@
                         <option value="user">Usuario</option>
                     </select><br><br>
                 </div>
-
                 <div class="form-group">
                     <label>Permisos Adicionales:</label><br>
                     <input type="checkbox" id="permiso1" name="permissions" value="ver_alarmas">
@@ -56,59 +81,103 @@
                     <input type="checkbox" id="permiso3" name="permissions" value="configuracion_avanzada">
                     <label for="permiso3">Acceso a Configuración Avanzada</label><br><br>
                 </div>
-
                 <div class="form-group">
                     <label for="face_capture">Captura tu imagen:</label>
                     <div class="face-recognition">
-                        <video id="input_video" width="320" height="240" autoplay></video>
-                        <canvas id="output_canvas" width="320" height="240" style="display:none;"></canvas>
+                        <video id="input_video" autoplay></video>
+                        <canvas id="output_canvas"></canvas>
                     </div>
-                    <button type="button" id="capture">Capturar Imagen</button>
+                    <button type="button" id="capture">Capturar Malla Facial</button>
                     <input type="hidden" id="profile_image" name="profile_image">
                 </div>
-
-                <!-- Añadir un elemento de imagen para mostrar la captura -->
                 <div class="form-group">
                     <label>Imagen Capturada:</label><br>
-                    <img id="captured_image" src="" alt="Imagen Capturada" style="display:none; width: 320px; height: 240px;">
+                    <img id="captured_image" src="" alt="Imagen Capturada"
+                        style="display:none; width: 320px; height: 240px;">
                 </div>
-
                 <button type="submit">Crear Usuario</button>
             </form>
         </div>
     </div>
 
     <script>
-        // Acceso a la cámara
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(function(stream) {
-                const video = document.getElementById('input_video');
-                video.srcObject = stream;
-                video.play();
-            })
-            .catch(function(err) {
-                console.error("Error al acceder a la cámara: " + err);
-            });
+        const videoElement = document.getElementById('input_video');
+        const canvasElement = document.getElementById('output_canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+        const captureButton = document.getElementById('capture');
+        const profileImageInput = document.getElementById('profile_image');
+        const capturedImage = document.getElementById('captured_image');
 
-        document.getElementById('capture').addEventListener('click', function() {
-            const canvas = document.getElementById('output_canvas');
-            const context = canvas.getContext('2d');
-            const video = document.getElementById('input_video');
-
-            // Capturar la imagen del video
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            // Convertir a base64
-            const imageData = canvas.toDataURL('image/png');
-            
-            // Almacenar en el campo oculto
-            document.getElementById('profile_image').value = imageData;
-
-            // Mostrar la imagen capturada en el elemento <img>
-            const capturedImage = document.getElementById('captured_image');
-            capturedImage.src = imageData;
-            capturedImage.style.display = 'block';  // Hacer visible la imagen
+        const faceMesh = new FaceMesh({
+            locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
+            }
         });
+        faceMesh.setOptions({
+            maxNumFaces: 1,
+            refineLandmarks: true,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+
+        faceMesh.onResults(onResults);
+
+        const camera = new Camera(videoElement, {
+            onFrame: async () => {
+                await faceMesh.send({ image: videoElement });
+            },
+            width: 320,
+            height: 240
+        });
+
+        camera.start();
+
+        let currentFaceMeshData = null;
+
+        // Función que se ejecuta cuando se detectan resultados de la malla facial
+        function onResults(results) {
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+            if (results.multiFaceLandmarks) {
+                for (const landmarks of results.multiFaceLandmarks) {
+                    drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION, { color: '#C0C0C070', lineWidth: 1 });
+                    drawConnectors(canvasCtx, landmarks, FACEMESH_RIGHT_EYE, { color: '#FF3030' });
+                    drawConnectors(canvasCtx, landmarks, FACEMESH_LEFT_EYE, { color: '#30FF30' });
+
+                    // Guardar los puntos de la malla facial como un objeto JSON
+                    currentFaceMeshData = landmarks.map(point => ({
+                        x: point.x,
+                        y: point.y,
+                        z: point.z
+                    }));
+                }
+            }
+            canvasCtx.restore();
+        }
+
+        // Función para capturar la malla facial como JSON
+        function captureMesh() {
+            if (currentFaceMeshData) {
+                // Convertir la malla facial a una cadena JSON
+                const meshJson = JSON.stringify(currentFaceMeshData);
+
+                // Almacenar la cadena JSON en el campo oculto
+                profileImageInput.value = meshJson;
+
+                // Opcional: Mostrar un mensaje o imagen indicando que la malla se capturó correctamente
+                capturedImage.src = canvasElement.toDataURL('image/png');  // Mostrar una imagen visual
+                capturedImage.style.display = 'block';
+
+                alert('Malla facial capturada y almacenada.');
+            } else {
+                alert('No se ha detectado una malla facial. Por favor, intente de nuevo.');
+            }
+        }
+
+        // Capturar malla facial cuando se hace clic en el botón
+        captureButton.addEventListener('click', captureMesh);
     </script>
 </body>
+
 </html>

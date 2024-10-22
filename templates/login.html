@@ -1,98 +1,141 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inicio de Sesión</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style-login.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+        crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 </head>
+
 <body>
     <div class="container">
         <div class="login-box">
-            <div class="face-recognition">
-                <video id="input_video" width="320" height="240" autoplay></video>
-                <canvas id="output_canvas" width="320" height="240"></canvas>
-            </div>
-            
             <div class="login-form">
                 <h2>Iniciar Sesión</h2>
-                <form action="{{ url_for('login') }}" method="POST">
+                <form id="loginForm" method="POST" action="{{ url_for('login') }}">
                     <div class="input-box">
-                        <input type="text" name="username" placeholder="Nombre de usuario" required>
-                        <span class="icon">&#x1F464;</span>
+                        <label for="username">
+                            <span class="icon">&#x1F464;</span>
+                            Nombre de usuario
+                        </label>
+                        <input type="text" id="username" name="username" placeholder="Nombre de usuario" required
+                            autocomplete="username">
                     </div>
                     <div class="input-box">
-                        <input type="password" name="password" placeholder="Contraseña" required>
-                        <span class="icon">&#x1F512;</span>
+                        <label for="password">
+                            <span class="icon">&#x1F512;</span>
+                            Contraseña
+                        </label>
+                        <input type="password" id="password" name="password" placeholder="Contraseña" required
+                            autocomplete="current-password">
                     </div>
                     <div class="options">
-                        <label>
-                            <a href="#" class="forgot-password">Olvidé mi contraseña</a>
-                        </label>
+                        <a href="#" class="forgot-password">Olvidé mi contraseña</a>
                     </div>
-                    <button type="submit">Acceder</button>
+                    <button type="button" onclick="checkCredentials()">Verificar Credenciales</button>
+                    <button type="button" onclick="checkCredentials()">Acceder como Administrador</button>
                 </form>
-                {% with messages = get_flashed_messages() %}
-                    {% if messages %}
-                        <div class="flash-messages">
-                            {% for message in messages %}
-                                <p>{{ message }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                {% endwith %}
+                <div id="messages" class="flash-messages"></div>
             </div>
         </div>
     </div>
-    <script>
-    const videoElement = document.getElementById('input_video');
-    const canvasElement = document.getElementById('output_canvas');
-    const canvasCtx = canvasElement.getContext('2d');
 
-    function onResults(results) {
-      canvasCtx.save();
-      canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-      canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-      if (results.multiFaceLandmarks) {
-        for (const landmarks of results.multiFaceLandmarks) {
-          drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION,
-                         {color: '#C0C0C070', lineWidth: 1});
-          drawConnectors(canvasCtx, landmarks, FACEMESH_RIGHT_EYE, {color: '#FF3030'});
-          drawConnectors(canvasCtx, landmarks, FACEMESH_RIGHT_EYEBROW, {color: '#FF3030'});
-          drawConnectors(canvasCtx, landmarks, FACEMESH_RIGHT_IRIS, {color: '#FF3030'});
-          drawConnectors(canvasCtx, landmarks, FACEMESH_LEFT_EYE, {color: '#30FF30'});
-          drawConnectors(canvasCtx, landmarks, FACEMESH_LEFT_EYEBROW, {color: '#30FF30'});
-          drawConnectors(canvasCtx, landmarks, FACEMESH_LEFT_IRIS, {color: '#30FF30'});
-          drawConnectors(canvasCtx, landmarks, FACEMESH_FACE_OVAL, {color: '#E0E0E0'});
-          drawConnectors(canvasCtx, landmarks, FACEMESH_LIPS, {color: '#E0E0E0'});
+    <!-- Modal for Camera -->
+    <div id="cameraModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <video id="input_video" width="320" height="240" autoplay></video>
+            <canvas id="output_canvas" width="320" height="240" style="display: none;"></canvas>
+            <button type="button" onclick="captureImage()">Capturar Imagen</button>
+        </div>
+    </div>
+
+    <style>
+        .modal {
+            display: flex;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
         }
-      }
-      canvasCtx.restore();
-    }
 
-    const faceMesh = new FaceMesh({locateFile: (file) => {
-      return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
-    }});
-    faceMesh.setOptions({
-      maxNumFaces: 1,
-      refineLandmarks: true,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5
-    });
-    faceMesh.onResults(onResults);
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #888;
+            border-radius: 5px;
+            text-align: center;
+        }
 
-    const camera = new Camera(videoElement, {
-      onFrame: async () => {
-        await faceMesh.send({image: videoElement});
-      },
-      width: 320,
-      height: 240
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+
+    <script>
+        function checkCredentials() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    fetch('{{ url_for("login") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            if (data.redirect) {
+                window.location.href = data.redirect;
+            } else {
+                showMessage(data.message);
+            }
+        } else {
+            showMessage(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showMessage('Error de conexión. Por favor, intente más tarde.');
     });
-    camera.start();
+}
+
+function showMessage(message) {
+    const messagesDiv = document.getElementById('messages');
+    messagesDiv.innerHTML = `<p>${message}</p>`;
+}
     </script>
 </body>
+
 </html>
