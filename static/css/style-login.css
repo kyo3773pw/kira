@@ -193,3 +193,46 @@ button:hover {
         font-size: 0.9em;
     }
 }
+
+/* Añade estos estilos a tu archivo style-login.css */
+.form-group input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+}
+
+#verificationCodeGroup {
+    transition: all 0.3s ease;
+}
+
+#verificationCodeGroup.show {
+    opacity: 1;
+    height: auto;
+}
+
+#verificationCodeGroup.hide {
+    opacity: 0;
+    height: 0;
+}
+
+.status-message {
+    transition: all 0.3s ease;
+}
+
+/* Animación para los mensajes de estado */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.alert {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Estilo para el input de código de verificación */
+#verification_code {
+    letter-spacing: 2px;
+    font-family: monospace;
+    text-align: center;
+    font-size: 18px;
+}

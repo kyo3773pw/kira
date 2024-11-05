@@ -12,8 +12,10 @@ from functools import wraps
 import json
 import os
 
-import uuid
-from datetime import datetime
+from twilio.rest import Client
+from datetime import datetime, timedelta
+import random
+import pytz
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://sa:user123@anyone_else/usuarios?driver=ODBC+Driver+17+for+SQL+Server'
@@ -30,6 +32,9 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(20), nullable=False)
     permissions = db.Column(db.String(200), nullable=True)
     profile_image = db.Column(db.String(255))
+    phone_number = db.Column(db.String(15), nullable=True)
+    verification_code = db.Column(db.String(6))
+    code_expiry = db.Column(db.DateTime)  
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -312,23 +317,148 @@ def login():
             user = User.query.filter_by(username=username).first()
             
             if user and check_password_hash(user.password, password):
-                if user.role == 'admin':
-                    login_user(user)
-                    return jsonify({'success': True, 'message': 'Inicio de sesión exitoso como administrador.', 'redirect': url_for('index')})
-                elif user.profile_image:
-                    # Store username in session for facial verification
-                    session['username'] = username
-                    return jsonify({'success': True, 'message': 'Credenciales correctas. Proceda a la verificación facial.', 'redirect': url_for('facial_verification')})
+                # Usuario normal requiere verificación facial
+                if user.role == 'user':
+                    if user.profile_image:
+                        session['username'] = username
+                        return jsonify({
+                            'success': True, 
+                            'message': 'Credenciales correctas. Proceda a la verificación facial.',
+                            'require_facial': True
+                        })
+                    else:
+                        return jsonify({
+                            'success': False, 
+                            'message': 'El usuario no tiene una malla facial registrada.'
+                        })
                 else:
-                    return jsonify({'success': False, 'message': 'El usuario no tiene una malla facial registrada.'})
+                    return jsonify({
+                        'success': False,
+                        'message': 'Por favor use el login de administrador.'
+                    })
             else:
                 return jsonify({'success': False, 'message': 'Usuario o contraseña incorrectos.'})
         except Exception as e:
             app.logger.error(f"Login error: {str(e)}")
             return jsonify({'success': False, 'message': 'Error en el proceso de inicio de sesión.'})
 
+# Configuración de Twilio
+TWILIO_ACCOUNT_SID = 'account_sid' #no me eja subir mis credenciales asi q falta rellenar
+TWILIO_AUTH_TOKEN = 'auth_token' #igual aqui
+TWILIO_WHATSAPP_NUMBER = '+14155238886'  # Formato: 'whatsapp:+14155238886'
+
+client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+
+def send_whatsapp_verification(phone_number, code):
+    """Envía el código de verificación por WhatsApp usando Twilio"""
+    try:
+        message = client.messages.create(
+            from_=f'whatsapp:{TWILIO_WHATSAPP_NUMBER}',  # Agregar prefijo whatsapp:
+            body=f"Tu código de verificación es: {code}\nVálido por 30 segundos.",
+            to=f'whatsapp:+{+51993811230}'  # Ya tienes el prefijo whatsapp: aquí
+        )
+        return True
+    except Exception as e:
+        app.logger.error(f"Twilio WhatsApp error: {str(e)}")
+        return False
+
+@app.route('/admin_login', methods=['GET', 'POST'])
+def admin_login():
+    try:
+        if request.method == 'GET':
+            return render_template('admin_login.html')
+        
+        username = request.form.get('username')
+        password = request.form.get('password')
+        verification_code = request.form.get('verification_code')
+
+        if not username or not password:
+            return jsonify({
+                'success': False, 
+                'message': 'Usuario y contraseña son requeridos.'
+            })
+
+        user = User.query.filter_by(username=username).first()
+        
+        if not user or not check_password_hash(user.password, password):
+            return jsonify({
+                'success': False, 
+                'message': 'Credenciales de administrador incorrectas.'
+            })
+
+        if user.role not in ['admin', 'coadmin']:
+            return jsonify({
+                'success': False,
+                'message': 'No tiene permisos de administrador.'
+            })
+
+        # Si no hay código de verificación, generar y enviar uno nuevo
+        if not verification_code:
+            new_code = ''.join(random.choices('0123456789', k=6))
+            expiry_time = datetime.now() + timedelta(seconds=30)
+            
+            user.verification_code = new_code
+            user.code_expiry = expiry_time
+            db.session.commit()
+            
+            if send_whatsapp_verification(user.phone_number, new_code):
+                return jsonify({
+                    'success': True,
+                    'requires_2fa': True,
+                    'message': 'Se ha enviado un código de verificación a tu WhatsApp.'
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'message': 'Error al enviar el código de verificación.'
+                })
+
+        # Verificar el código
+        if not user.verification_code or not user.code_expiry:
+            return jsonify({
+                'success': False,
+                'message': 'No hay código de verificación pendiente.'
+            })
+
+        if datetime.now() > user.code_expiry:
+            user.verification_code = None
+            user.code_expiry = None
+            db.session.commit()
+            
+            return jsonify({
+                'success': False,
+                'message': 'El código de verificación ha expirado.'
+            })
+
+        if verification_code != user.verification_code:
+            return jsonify({
+                'success': False,
+                'message': 'Código de verificación incorrecto.'
+            })
+
+        # Si todo está correcto, hacer login
+        login_user(user)
+        
+        # Limpiar el código usado
+        user.verification_code = None
+        user.code_expiry = None
+        db.session.commit()
+        
+        return jsonify({
+            'success': True, 
+            'message': 'Inicio de sesión exitoso como administrador.',
+            'redirect': '/'  # Cambiado a la ruta raíz directamente
+        })
+
+    except Exception as e:
+        app.logger.error(f"Admin login error: {str(e)}")
+        return jsonify({
+            'success': False, 
+            'message': 'Error en el proceso de inicio de sesión de administrador.'
+        })
+    
 # Definición del umbral de similitud
-SIMILARITY_THRESHOLD = 0.85
+SIMILARITY_THRESHOLD = 0.96
 
 # Definición del modelo VerificationLog (si es necesario)
 class VerificationLog(db.Model):
@@ -437,22 +567,21 @@ def facial_verification():
         return render_template('facial_verification.html')
 
     elif request.method == 'POST':
-        username = session['username']
-        user = User.query.filter_by(username=username).first()
-
-        if not user:
-            return jsonify({'success': False, 'message': 'Usuario no encontrado.'})
-
-        if not user.profile_image:
-            return jsonify({'success': False, 'message': 'Usuario no tiene malla facial registrada.'})
-
-        # Obtener la malla facial capturada desde el JSON enviado por el frontend
-        captured_mesh = request.json.get('captured_mesh')
-        if not captured_mesh:
-            return jsonify({'success': False, 'message': 'No se recibió la malla facial capturada.'})
-        
         try:
-            # Intentar decodificar los datos como JSON directamente
+            username = session.get('username')
+            user = User.query.filter_by(username=username).first()
+
+            if not user:
+                return jsonify({'success': False, 'message': 'Usuario no encontrado.'})
+
+            if not user.profile_image:
+                return jsonify({'success': False, 'message': 'Usuario no tiene malla facial registrada.'})
+
+            # Obtener y validar la malla facial
+            captured_mesh = request.json.get('captured_mesh')
+            if not captured_mesh:
+                return jsonify({'success': False, 'message': 'No se recibió la malla facial capturada.'})
+            
             try:
                 login_mesh_points = json.loads(captured_mesh)
             except json.JSONDecodeError:
@@ -461,57 +590,45 @@ def facial_verification():
                     'message': 'Error: Los datos recibidos no están en el formato JSON esperado.'
                 })
             
-            # Leer la malla facial almacenada desde el archivo JSON en la ruta especificada
+            # Leer la malla facial almacenada
             try:
-                # Convertir la ruta con guiones a una ruta válida del sistema de archivos
                 stored_mesh_file_path = user.profile_image.replace('-', os.sep)
                 full_file_path = os.path.join(app.root_path, stored_mesh_file_path.lstrip('/'))
 
-                # Leer el contenido del archivo JSON
                 with open(full_file_path, 'r', encoding='utf-8') as mesh_file:
                     stored_mesh_points = json.load(mesh_file)
             except (FileNotFoundError, json.JSONDecodeError):
-                app.logger.error(f"Error al leer o decodificar la malla facial almacenada para usuario {username}")
+                app.logger.error(f"Error al leer malla facial almacenada para usuario {username}")
                 return jsonify({
                     'success': False,
                     'message': 'Error al procesar los datos almacenados del usuario.'
                 })
 
-            # Verificar la estructura de las mallas faciales
+            # Validar y comparar mallas faciales
             if not validate_mesh_structure(login_mesh_points, stored_mesh_points):
                 return jsonify({
                     'success': False,
                     'message': 'Estructura de malla facial inválida.'
                 })
 
-            # Comparar las mallas faciales
             similarity_score = compare_facial_meshes(login_mesh_points, stored_mesh_points)
 
-            # Registrar el intento de verificación
+            # Registrar el intento
             log_verification_attempt(
                 user_id=user.id,
                 success=similarity_score >= SIMILARITY_THRESHOLD,
                 similarity_score=similarity_score
             )
 
-            # Verificar si la similitud es suficiente para aprobar
+            # Verificar similitud y proceder con el login
             if similarity_score >= SIMILARITY_THRESHOLD:
                 login_user(user)
                 session.pop('username', None)
-                
-                # Redirigir según el rol del usuario
-                if user.role == 'coadmin':
-                    return jsonify({
-                        'success': True,
-                        'message': 'Verificación facial exitosa.',
-                        'redirect': url_for('index.html')  # Ajusta la URL de redirección para coadministradores
-                    })
-                else:
-                    return jsonify({
-                        'success': True,
-                        'message': 'Verificación facial exitosa.',
-                        'redirect': url_for('index.html')  # Redirección para administradores u otros roles
-                    })
+                return jsonify({
+                    'success': True,
+                    'message': 'Verificación facial exitosa.',
+                    'redirect': url_for('index')
+                })
             else:
                 return jsonify({
                     'success': False,
@@ -519,7 +636,7 @@ def facial_verification():
                 })
 
         except Exception as e:
-            app.logger.error(f"Error en verificación facial para usuario {username}: {str(e)}")
+            app.logger.error(f"Error en verificación facial: {str(e)}")
             return jsonify({
                 'success': False,
                 'message': 'Error en la verificación. Por favor, intente de nuevo.'

@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style-editar.css') }}">
     <title>Editar Usuario</title>
 </head>
 <body>
     <div class="sidebar">
         <div class="user-info">
             <div class="user-avatar"></div>
-            <h2 class="user-name">Nombre de Usuario</h2>
+            <h2 class="user-name">{{ current_user.username }}</h2>
         </div>
         <ul class="menu">
             <li><a href="/">Inicio</a></li>
             <li><a href="#">Configuración</a></li>
             <li><a href="#">Alarmas</a></li>
             <li><a href="#">Notificaciones</a></li>
-            <li><a href="#">Cerrar Sesión</a></li>
+            <li><a href="{{ url_for('logout') }}">Cerrar Sesión</a></li>
         </ul>
     </div>
     <div class="main-content">
@@ -39,6 +39,13 @@
                     <option value="coadmin" {% if role == 'coadmin' %} selected {% endif %}>Coadministrador</option>
                     <option value="user" {% if role == 'user' %} selected {% endif %}>Usuario</option>
                 </select><br><br>
+
+                <!-- Opción para restablecer la configuración de TOTP -->
+                <div class="form-group">
+                    <label for="reset_totp">Restablecer TOTP:</label>
+                    <input type="checkbox" id="reset_totp" name="reset_totp">
+                    <span>Marcar para restablecer la autenticación TOTP para este usuario.</span>
+                </div><br>
             
                 <button type="submit">Actualizar Usuario</button>
             </form>
